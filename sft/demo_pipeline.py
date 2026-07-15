@@ -5,7 +5,10 @@ THREE downstream tasks off ONE frozen backbone (head-swap):
   (B) next-job-FAILURE classification (binary head; acc/F1/AUC/AUPRC)
   (C) next-job NODE-COUNT regression (linear head; MAE/Pearson)
 Shows pretrained+frozen-backbone+cheap-head-FT vs from-scratch + Chronos. Env: D,L,PRE_EP,FT_EP,CHRONOS."""
-import os, glob, numpy as np, pandas as pd, torch, torch.nn as nn, torch.nn.functional as F
+import os, sys, glob, numpy as np, pandas as pd, torch, torch.nn as nn, torch.nn.functional as F
+# --- repo layout: shared libs live in common/ (see repo root README) ---
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(_ROOT, "common"))
 from nfm_core import HSTU, dev, mase, train_gen, rollout, Quantizer
 from sklearn.metrics import f1_score, roc_auc_score, average_precision_score, precision_recall_curve
 import baselines_sota as bs

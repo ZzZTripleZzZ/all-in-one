@@ -2,7 +2,11 @@
 DC+HPC+NET+wireless telemetry, evaluated per-domain ZERO-SHOT vs Chronos (both pretrained
 => FAIR comparison, unlike from-scratch). Chronos-style per-series scaling + shared vocab so
 one model spans domains of different magnitude. Env: K,CTX,HMAX,D/H/L,PRE_EP, DOMAINS(csv)."""
-import os, numpy as np, torch
+import os, sys, numpy as np, torch
+# --- repo layout: shared libs live in common/ and data/ (see repo root README) ---
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+for _p in ("common", "data"):
+    sys.path.insert(0, os.path.join(_ROOT, _p))
 from nfm_core import HSTU, dev, mase, train_gen, rollout, rank_metrics
 import nfm_data, baselines_sota as bs
 

@@ -2,6 +2,10 @@
 vs per-horizon specialists (GBM) vs persistence/seasonal. Per-horizon MASE. Our-vocab tokenizer.
 Env: K vocab (1024), CTX (32), HMAX (16), D/H/L/EP model. Usage: python run_horizon.py [burst|fdata|cesnet|all]"""
 import os, sys, numpy as np, torch
+# --- repo layout: shared libs live in common/ and data/ (see repo root README) ---
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+for _p in ("common", "data"):
+    sys.path.insert(0, os.path.join(_ROOT, _p))
 from nfm_core import Quantizer, HSTU, TFM, LSTMGen, GRUGen, train_gen, rollout, mase, rank_metrics, dev
 import nfm_data, baselines_sota as bs
 import os as _os
