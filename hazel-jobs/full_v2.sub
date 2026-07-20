@@ -1,0 +1,19 @@
+#!/bin/bash
+#SBATCH -J v2_full
+#SBATCH -A hpcproject_gpu
+#SBATCH -p gpu
+#SBATCH -q gpu
+#SBATCH --gres=gpu:a30:1
+#SBATCH -N 1
+#SBATCH -n 1
+#SBATCH -c 8
+#SBATCH --mem=64G
+#SBATCH -t 10:00:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/v2full_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/v2full_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+NFILES=0 KC=256 CTX=32 HMAX=16 D=512 H=8 L=8 EP=10 MIX=4 NSEED=3 $PY pretrain/run_forecast_v2.py
+echo FULL_DONE

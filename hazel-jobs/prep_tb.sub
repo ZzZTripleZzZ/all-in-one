@@ -1,0 +1,17 @@
+#!/bin/bash
+#SBATCH -J prep_tb
+#SBATCH -A hpcproject_cpu
+#SBATCH -p compute
+#SBATCH -N 1
+#SBATCH -n 1
+#SBATCH -c 4
+#SBATCH --mem=48G
+#SBATCH -t 01:00:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/prep_tb_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/prep_tb_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+$PY data/prep_loghub.py Thunderbird
+echo PREP_TB_DONE

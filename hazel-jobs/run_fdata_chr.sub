@@ -1,0 +1,19 @@
+#!/bin/bash
+#SBATCH -J nfm_fdata_chr
+#SBATCH -A hpcproject_gpu
+#SBATCH -p gpu
+#SBATCH -q gpu
+#SBATCH --gres=gpu:a30:1
+#SBATCH -N 1
+#SBATCH -n 1
+#SBATCH -c 8
+#SBATCH --mem=48G
+#SBATCH -t 04:00:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/fdata_chr_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/fdata_chr_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 HF_HOME=/share/hpcproject/zzhang66/nfm/hf_cache HF_HUB_OFFLINE=1
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+K=1024 CTX=32 HMAX=16 D=256 H=4 L=4 EP=10 CHRONOS=1 $PY pretrain/run_horizon.py fdata
+echo ALL_DONE

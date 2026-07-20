@@ -1,0 +1,29 @@
+#!/bin/bash
+#SBATCH -J bf_model
+#SBATCH -A hpcproject_gpu
+#SBATCH -p gpu -q gpu --gres=gpu:a30:1
+#SBATCH -N 1 -n 1 -c 8 --mem=48G -t 04:00:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/bf_model_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/bf_model_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+EST=~/nfm/data/backfill_est
+
+echo "======== TRAIN HSTU runtime estimator + emit per-quantile npz ========"
+LMAX=96 D=256 H=8 L=4 EP=30 MIX=6 STRIDE=24 ARM=HSTU QS=0.5,0.6,0.7,0.8,0.9 OUT=$EST $PY pretrain/run_backfill_model.py
+
+echo "======== GRU control (same protocol) ========"
+LMAX=96 D=256 H=8 L=4 EP=30 MIX=6 STRIDE=24 ARM=GRU QS=0.5,0.6,0.7,0.8,0.9 OUT=$EST $PY pretrain/run_backfill_model.py
+
+for CAP in 30000 25000 20000; do
+  echo ""; echo "################ CAPACITY $CAP ################"
+  for Q in 50 60 70 80 90; do
+    echo "---- model=HSTU q$Q  (baselines reprinted for reference) ----"
+    NODES=$CAP HISTQ=0.9,0.99 MODEL_EST=$EST/hstu_q$Q.npz $PY pretrain/run_backfill_replay.py
+  done
+  echo "---- model=GRU q70 (arch control @ $CAP) ----"
+  NODES=$CAP HISTQ=0.9 MODEL_EST=$EST/gru_q70.npz $PY pretrain/run_backfill_replay.py
+done
+echo BF_MODEL_ALL_DONE

@@ -1,0 +1,13 @@
+#!/bin/bash
+#SBATCH -J lanl_valsmoke
+#SBATCH -A hpcproject_cpu
+#SBATCH -p compute
+#SBATCH -N 1 -n 1 -c 8 --mem=32G -t 00:25:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/lanl_valsmoke_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/lanl_valsmoke_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+SMOKE=1 NUSERS=250 LANL_CSV=$HOME/nfm/data/lanl/lanl_rich_s5.csv $PY sft/run_security_rich.py
+echo LANL_VALSMOKE_DONE

@@ -1,0 +1,16 @@
+#!/bin/bash
+#SBATCH -J bf_model_smoke
+#SBATCH -A hpcproject_gpu
+#SBATCH -p gpu -q gpu --gres=gpu:a30:1
+#SBATCH -N 1 -n 1 -c 8 --mem=32G -t 00:30:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/bf_model_smoke_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/bf_model_smoke_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+echo "=== train model (SMOKE) + emit npz ==="
+SMOKE=1 ARM=HSTU OUT=~/nfm/data/backfill_est_smoke QS=0.8,0.9 $PY pretrain/run_backfill_model.py
+echo "=== replay with model arm @ 20000 nodes ==="
+NODES=20000 MAXJ=20000 HISTQ=0.9 MODEL_EST=~/nfm/data/backfill_est_smoke/hstu_q90.npz $PY pretrain/run_backfill_replay.py
+echo BF_SMOKE_DONE

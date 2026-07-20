@@ -1,24 +1,8 @@
-# python
 __pycache__/
 *.pyc
-.venv/
-
-# run outputs
-results/
-
-# raw + processed data: folder skeleton is tracked, contents are not.
-# The real multi-GB traces live on the lab box (~/nfm/data), not in git.
-data/raw/*
-!data/raw/.gitkeep
-data/processed/*
-!data/processed/.gitkeep
-
-# model checkpoints (large; live on the lab box). The checkpoints/ dirs
-# stay in git via their .gitkeep, but the weights themselves are ignored.
-*.pt
-*.ckpt
-*.safetensors
-
-# stray large telemetry files anywhere
+.DS_Store
+data/
+generative-recommenders/
+*.pdf
+*.npz
 *.parquet
-*.csv.gz

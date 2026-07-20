@@ -1,0 +1,14 @@
+#!/bin/bash
+#SBATCH -J eff
+#SBATCH -A hpcproject_gpu
+#SBATCH -p gpu -q gpu --gres=gpu:a30:1
+#SBATCH -N 1 -n 1 -c 8 --mem=32G -t 00:20:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/eff_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/eff_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+$PY -m py_compile pretrain/efficiency.py && echo "COMPILE OK"
+$PY pretrain/efficiency.py
+echo EFF_DONE

@@ -1,0 +1,19 @@
+#!/bin/bash
+#SBATCH -J anyio_mamba
+#SBATCH -A hpcproject_gpu
+#SBATCH -p gpu
+#SBATCH -q gpu
+#SBATCH --gres=gpu:a30:1
+#SBATCH -N 1
+#SBATCH -n 1
+#SBATCH -c 8
+#SBATCH --mem=64G
+#SBATCH -t 12:00:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/anyio_mamba_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/anyio_mamba_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+BACKBONES=Mamba NSEED=3 BS=64 KC=256 D=512 H=8 L=8 EP=10 MIX=4 SPLIT=96 LOUTMAX=64 EVALMAX=3000 $PY pretrain/run_anyio_v2.py
+echo DONE

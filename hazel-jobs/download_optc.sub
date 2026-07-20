@@ -1,0 +1,14 @@
+#!/bin/bash
+#SBATCH -J optc_dl
+#SBATCH -A hpcproject_cpu
+#SBATCH -p xfer
+#SBATCH -N 1
+#SBATCH -n 1
+#SBATCH -t 24:00:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/optc_dl_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/optc_dl_%j.err
+echo "node=$(hostname)"
+curl -sf -m 15 https://drive.google.com > /dev/null || { echo "NO INTERNET on $(hostname), aborting"; exit 3; }
+echo "internet OK, starting download"
+export PYTHONNOUSERSITE=1
+/share/hpcproject/zzhang66/nfm/env/bin/python /share/hpcproject/zzhang66/nfm/download_optc.py

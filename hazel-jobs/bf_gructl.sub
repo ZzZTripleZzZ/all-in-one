@@ -1,0 +1,19 @@
+#!/bin/bash
+#SBATCH -J bf_gructl
+#SBATCH -A hpcproject_cpu
+#SBATCH -p compute -q normal
+#SBATCH -N 1 -n 1 -c 4 --mem=16G -t 01:30:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/bf_gructl_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/bf_gructl_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+EST=~/nfm/data/backfill_est
+for CAP in 20000 23000; do
+  for Q in 50 60; do
+    echo "---- GRU q$Q cap=$CAP ----"
+    NODES=$CAP HISTQ=0.9 MODEL_EST=$EST/gru_q$Q.npz $PY pretrain/run_backfill_replay.py
+  done
+done
+echo BF_GRUCTL_DONE

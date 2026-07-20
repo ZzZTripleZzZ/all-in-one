@@ -1,0 +1,13 @@
+#!/bin/bash
+#SBATCH -J lanl_full
+#SBATCH -A hpcproject_gpu
+#SBATCH -p gpu -q gpu --gres=gpu:a30:1
+#SBATCH -N 1 -n 1 -c 8 --mem=64G -t 10:00:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/lanl_full_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/lanl_full_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+DSTV=2000 SRCV=2000 N=64 D=256 H=4 L=4 EP=10 NSEED=3 BS=256 LANL_CSV=$HOME/nfm/data/lanl/lanl_rich_s5.csv $PY sft/run_security_rich.py
+echo LANL_FULL_DONE

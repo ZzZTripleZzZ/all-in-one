@@ -1,0 +1,13 @@
+#!/bin/bash
+#SBATCH -J dtsmoke
+#SBATCH -A hpcproject_cpu
+#SBATCH -p compute
+#SBATCH -N 1 -n 1 -c 8 --mem=32G -t 00:30:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/dtsmoke_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/dtsmoke_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+SMOKE=1 MAXTRAIN=1500 DATASET=BGL W=100 METHODS=HSTU-dt,HSTU-time $PY sft/run_loganomaly.py
+echo DTSMOKE_DONE

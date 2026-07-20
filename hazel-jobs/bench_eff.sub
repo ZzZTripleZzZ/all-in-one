@@ -1,0 +1,12 @@
+#!/bin/bash
+#SBATCH -J bench_eff
+#SBATCH -A hpcproject_cpu
+#SBATCH -p compute -q normal
+#SBATCH -N 1 -n 1 -c 4 --mem=16G -t 00:40:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/bench_eff_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/bench_eff_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
+cd /share/hpcproject/zzhang66/nfm
+THREADS=4 ./env/bin/python bench_efficiency.py
+echo BENCH_EFF_DONE

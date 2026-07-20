@@ -1,0 +1,23 @@
+#!/bin/bash
+#SBATCH -J sec_gate
+#SBATCH -A hpcproject_gpu
+#SBATCH -p gpu
+#SBATCH -q gpu
+#SBATCH --gres=gpu:a30:1
+#SBATCH -N 1
+#SBATCH -n 1
+#SBATCH -c 8
+#SBATCH --mem=64G
+#SBATCH -t 03:00:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/sec_gate_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/sec_gate_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+C=/share/hpcproject/zzhang66/nfm/data/lanl/lanl_events_s5.csv
+echo "########## USE_TIME=1 (with time bias) ##########"
+env USE_TIME=1 LANL_CSV=$C DVOCAB=2048 N=64 D=256 H=4 L=4 PRE_EP=10 NSEED=2 $PY sft/run_security_lanl_anomaly.py
+echo "########## USE_TIME=0 (time bias OFF) ##########"
+env USE_TIME=0 LANL_CSV=$C DVOCAB=2048 N=64 D=256 H=4 L=4 PRE_EP=10 NSEED=2 $PY sft/run_security_lanl_anomaly.py
+echo ALL_DONE

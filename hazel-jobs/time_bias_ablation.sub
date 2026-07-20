@@ -1,0 +1,25 @@
+#!/bin/bash
+#SBATCH -J nfm_ablt
+#SBATCH -A hpcproject_gpu
+#SBATCH -p gpu
+#SBATCH -q gpu
+#SBATCH --gres=gpu:a30:1
+#SBATCH -N 1
+#SBATCH -n 1
+#SBATCH -c 8
+#SBATCH --mem=48G
+#SBATCH -t 06:00:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/ablt_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/ablt_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+CM="K=1024 CTX=32 HMAX=16 D=256 H=4 L=4 EP=10 CHRONOS=0"
+echo "########## FULL (pos+time) ##########"
+env USE_POS=1 USE_TIME=1 K=1024 CTX=32 HMAX=16 D=256 H=4 L=4 EP=10 CHRONOS=0 $PY pretrain/run_horizon.py fdata
+echo "########## POS-ONLY (time bias OFF) ##########"
+env USE_POS=1 USE_TIME=0 K=1024 CTX=32 HMAX=16 D=256 H=4 L=4 EP=10 CHRONOS=0 $PY pretrain/run_horizon.py fdata
+echo "########## TIME-ONLY (position bias OFF) ##########"
+env USE_POS=0 USE_TIME=1 K=1024 CTX=32 HMAX=16 D=256 H=4 L=4 EP=10 CHRONOS=0 $PY pretrain/run_horizon.py fdata
+echo ALL_DONE

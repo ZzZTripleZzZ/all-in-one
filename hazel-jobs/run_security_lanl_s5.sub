@@ -1,0 +1,19 @@
+#!/bin/bash
+#SBATCH -J sec_sup_s5
+#SBATCH -A hpcproject_gpu
+#SBATCH -p gpu
+#SBATCH -q gpu
+#SBATCH --gres=gpu:a30:1
+#SBATCH -N 1
+#SBATCH -n 1
+#SBATCH -c 8
+#SBATCH --mem=64G
+#SBATCH -t 04:00:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/sec_sup_s5_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/sec_sup_s5_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+LANL_CSV=/share/hpcproject/zzhang66/nfm/data/lanl/lanl_events_s5.csv DVOCAB=2048 N=64 D=256 H=4 L=4 PRE_EP=10 FT_EP=6 NSEED=3 $PY sft/run_security_lanl.py
+echo ALL_DONE

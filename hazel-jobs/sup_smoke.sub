@@ -1,0 +1,13 @@
+#!/bin/bash
+#SBATCH -J sup_smoke
+#SBATCH -A hpcproject_gpu
+#SBATCH -p gpu -q gpu --gres=gpu:a30:1
+#SBATCH -N 1 -n 1 -c 8 --mem=64G -t 00:40:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/sup_smoke_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/sup_smoke_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+SMOKE=1 DATASET=BGL W=120 METHODS='HSTU-dt,LSTM(DeepLog)' $PY sft/run_loganomaly_sup.py
+echo SUP_SMOKE_DONE

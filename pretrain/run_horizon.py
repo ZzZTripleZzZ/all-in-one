@@ -13,6 +13,7 @@ import os as _os
 K=int(os.environ.get('K',1024)); CTX=int(os.environ.get('CTX',32)); HMAX=int(os.environ.get('HMAX',16))
 N=CTX+HMAX; HZ=[h for h in [1,2,4,8,16,24,32] if h<=HMAX]
 D=int(os.environ.get('D',256)); H=int(os.environ.get('H',4)); L=int(os.environ.get('L',4)); EP=int(os.environ.get('EP',4))
+FRAC=float(os.environ.get('FRAC',1.0))   # fraction of TRAIN entities to keep (data-scale diagnostic)
 np.random.seed(0); torch.manual_seed(0)
 
 def gen_windows(V,T,idxs,q,frac=None):                 # length-N (tok,ts) windows for the generative model
@@ -40,6 +41,7 @@ def run(name, loader):
     if n>=10:
         rng=np.random.default_rng(0); e=rng.permutation(n); tec=set(e[:max(1,int(n*0.2))].tolist())
         tr=[i for i in range(n) if i not in tec]; te=[i for i in range(n) if i in tec]; split=f'entity-holdout({n})'
+        if FRAC<1.0: tr=tr[:max(1,int(len(tr)*FRAC))]; split=f'entity-holdout({n},train-frac={FRAC})'
         q=Quantizer(K).fit(np.concatenate([V[i] for i in tr]))
         scale=float(np.mean([np.mean(np.abs(np.diff(V[i]))) for i in tr if len(V[i])>1]))
         Tok,Ts=gen_windows(V,T,tr,q); ev=eval_windows(V,T,te,q)

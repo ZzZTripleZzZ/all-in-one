@@ -1,0 +1,17 @@
+#!/bin/bash
+#SBATCH -J bf_capsweep
+#SBATCH -A hpcproject_cpu
+#SBATCH -p compute -q normal
+#SBATCH -N 1 -n 1 -c 4 --mem=16G -t 02:00:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/bf_capsweep_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/bf_capsweep_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+EST=~/nfm/data/backfill_est
+for CAP in 18000 21000 22000 23000 24000 26000 28000 35000; do
+  echo ""; echo "################ CAPACITY $CAP (model=HSTU q60) ################"
+  NODES=$CAP HISTQ=0.9 MODEL_EST=$EST/hstu_q60.npz $PY pretrain/run_backfill_replay.py
+done
+echo BF_CAPSWEEP_DONE

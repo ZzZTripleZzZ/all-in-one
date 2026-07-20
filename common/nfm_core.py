@@ -2,9 +2,13 @@
 + standard causal Transformer + autoregressive multi-horizon rollout + MASE.
 Faithful to meta-recsys/generative-recommenders + arXiv 2402.17152 (Eq1-3, SiLU-attn/N, U-gate).
 Smoke test (synthetic) in __main__."""
-import sys, numpy as np, torch, torch.nn as nn, torch.nn.functional as F
+import os, sys, numpy as np, torch, torch.nn as nn, torch.nn.functional as F
 dev='cuda' if torch.cuda.is_available() else 'cpu'
 torch.backends.cudnn.enabled=False    # cudnn ver mismatch after torch reinstall breaks LSTM flatten; RNN uses native path (HSTU/TFM use cuBLAS, unaffected)
+# rab^{p,t} ablation switches (P0-2): USE_TIME=0 -> position-only HSTU (isolates the time-gap bias);
+# USE_POS=0 -> time-only. Default both on = full HSTU. Set via env BEFORE importing this module.
+_USE_POS  = os.environ.get('USE_POS','1')=='1'
+_USE_TIME = os.environ.get('USE_TIME','1')=='1'
 
 # ===================== tokenizer: OUR vocab via bucketize =====================
 class Quantizer:
@@ -35,7 +39,7 @@ class RelBias(nn.Module):
         delta=(ext[:,1:].unsqueeze(2)-ext[:,:-1].unsqueeze(1)).float()     # [B,N,N] pairwise Δt
         buck=torch.clamp((torch.log(delta.abs().clamp(min=1))/0.301).long(),0,self.nb)  # repo's fn, 128 buckets
         ts_bias=torch.index_select(self.tsw,0,buck.view(-1)).view(B,N,N)
-        return pos_bias+ts_bias                                            # [B,N,N]
+        return pos_bias*(1.0 if _USE_POS else 0.0)+ts_bias*(1.0 if _USE_TIME else 0.0)  # ablation-gated [B,N,N]
 
 class HSTULayer(nn.Module):
     def __init__(self,D,H,N,nb=128,p=0.1):
@@ -66,7 +70,8 @@ class HSTU(nn.Module):                                     # BACKBONE (task-agno
     def freeze_backbone(self):                             # for downstream finetune: freeze backbone, train only head/inserted module
         for p in self.tok.parameters(): p.requires_grad_(False)
         for p in self.layers.parameters(): p.requires_grad_(False)
-        return self
+        for l in self.layers: l.p=0.0                      # disable dropout on frozen layers: head is a linear probe on
+        return self                                        #   DETERMINISTIC features (train_gen calls .train(), else eval-time mismatch)
     def swap_head(self,Vnew):                              # attach a fresh task-specific head
         self.head=nn.Linear(self.D,Vnew).to(self.tok.weight.device); return self
 

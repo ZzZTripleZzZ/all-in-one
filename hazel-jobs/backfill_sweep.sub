@@ -1,0 +1,16 @@
+#!/bin/bash
+#SBATCH -J backfill_sw
+#SBATCH -A hpcproject_cpu
+#SBATCH -p compute
+#SBATCH -N 1 -n 1 -c 4 --mem=24G -t 04:00:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/backfill_sw_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/backfill_sw_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+for CAP in 40000 30000 25000 20000; do
+  echo "======== capacity $CAP nodes ========"
+  NODES=$CAP DAYS=14 SKIPD=7 $PY pretrain/run_backfill_replay.py
+done
+echo BACKFILL_SWEEP_DONE

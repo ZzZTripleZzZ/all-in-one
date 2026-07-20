@@ -1,0 +1,21 @@
+#!/bin/bash
+#SBATCH -J bf_seed
+#SBATCH -A hpcproject_gpu
+#SBATCH -p gpu -q gpu --gres=gpu:a30:1
+#SBATCH -N 1 -n 1 -c 4 --mem=32G -t 02:00:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/bf_seed%x_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/bf_seed%x_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+S=${SEED:?need SEED}
+EST=~/nfm/data/backfill_est_s$S
+SEED=$S LMAX=96 D=256 H=8 L=4 EP=30 MIX=6 STRIDE=24 ARM=HSTU QS=0.5,0.6 OUT=$EST $PY pretrain/run_backfill_model.py
+for CAP in 20000 23000; do
+  for Q in 50 60; do
+    echo "---- seed=$S cap=$CAP q$Q ----"
+    NODES=$CAP HISTQ=0.9 MODEL_EST=$EST/hstu_q$Q.npz $PY pretrain/run_backfill_replay.py
+  done
+done
+echo BF_SEED_${S}_DONE

@@ -1,0 +1,17 @@
+#!/bin/bash
+#SBATCH -J logsmoke
+#SBATCH -A hpcproject_cpu
+#SBATCH -p compute
+#SBATCH -N 1
+#SBATCH -n 1
+#SBATCH -c 8
+#SBATCH --mem=32G
+#SBATCH -t 00:40:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/logsmoke_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/logsmoke_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+SMOKE=1 MAXTRAIN=2000 DATASET=BGL W=100 $PY sft/run_loganomaly.py
+echo LOGSMOKE_DONE

@@ -1,0 +1,26 @@
+#!/bin/bash
+#SBATCH -J bf_v2
+#SBATCH -A hpcproject_gpu
+#SBATCH -p gpu -q gpu --gres=gpu:a30:1
+#SBATCH -N 1 -n 1 -c 4 --mem=32G -t 03:00:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/bfv2_%x_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/bfv2_%x_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+S=${SEED:?}; MODE=${MODE:?}   # time | notime | gru
+case $MODE in
+  time)   ARM=HSTU; UT=1;;
+  notime) ARM=HSTU; UT=0;;
+  gru)    ARM=GRU;  UT=1;;
+esac
+EST=~/nfm/data/bf2_${MODE}_s$S
+SEED=$S USE_TIME=$UT ARM=$ARM NFILE=0 LMAX=96 D=256 H=8 L=4 EP=30 MIX=6 STRIDE=24 QS=0.5,0.6 OUT=$EST $PY pretrain/run_backfill_model_v2.py
+for CAP in 20000 23000; do
+  for Q in 50 60; do
+    echo "---- v2 mode=$MODE seed=$S cap=$CAP q$Q ----"
+    NODES=$CAP HISTQ=0.9 MODEL_EST=$EST/$(echo $ARM | tr A-Z a-z)_q$Q.npz $PY pretrain/run_backfill_replay.py
+  done
+done
+echo BF_V2_${MODE}_${S}_DONE

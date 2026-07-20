@@ -1,0 +1,30 @@
+#!/bin/bash
+#SBATCH -J bf_month
+#SBATCH -A hpcproject_gpu
+#SBATCH -p gpu -q gpu --gres=gpu:a30:1
+#SBATCH -N 1 -n 1 -c 4 --mem=48G -t 05:00:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/bfmonth_%x_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/bfmonth_%x_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+M=${M:?need M}
+EIN=~/nfm/data/bfm_m${M}_in
+ETR=~/nfm/data/bfm_m${M}_tr0
+BASE=~/nfm/data/backfill_base_m$M
+echo "======== month $M in-domain train (v1 estimator) ========"
+SEED=0 NFILE=$M MAXJ=60000 LMAX=96 D=256 H=8 L=4 EP=30 MIX=6 STRIDE=24 ARM=HSTU QS=0.6 OUT=$EIN $PY pretrain/run_backfill_model.py
+echo "======== month $M zero-shot transfer (weights+stats from 21_04) ========"
+SEED=0 NFILE=$M TRAINF=0 MAXJ=60000 LMAX=96 D=256 H=8 L=4 EP=30 MIX=6 STRIDE=24 ARM=HSTU QS=0.6 OUT=$ETR $PY pretrain/run_backfill_model.py
+for RHO in 1.30 1.15 0.95; do
+  echo "---- month $M rho=$RHO in-domain ----"
+  NFILE=$M MAXJ=60000 RHOCAP=$RHO HISTQ=0.9 MODEL_EST=$EIN/hstu_q60.npz $PY pretrain/run_backfill_replay.py
+  echo "---- month $M rho=$RHO transfer ----"
+  NFILE=$M MAXJ=60000 RHOCAP=$RHO HISTQ=0.9 MODEL_EST=$ETR/hstu_q60.npz $PY pretrain/run_backfill_replay.py
+  echo "---- month $M rho=$RHO tsafrir ----"
+  NFILE=$M MAXJ=60000 RHOCAP=$RHO HISTQ=0.9 MODEL_EST=$BASE/tsafrir.npz $PY pretrain/run_backfill_replay.py
+  echo "---- month $M rho=$RHO gbm_q60 ----"
+  NFILE=$M MAXJ=60000 RHOCAP=$RHO HISTQ=0.9 MODEL_EST=$BASE/gbm_q60.npz $PY pretrain/run_backfill_replay.py
+done
+echo BF_MONTH_${M}_DONE

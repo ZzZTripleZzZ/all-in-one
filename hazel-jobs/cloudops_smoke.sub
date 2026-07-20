@@ -1,0 +1,13 @@
+#!/bin/bash
+#SBATCH -J cloudops_smoke
+#SBATCH -A hpcproject_cpu
+#SBATCH -p compute
+#SBATCH -N 1 -n 1 -c 8 --mem=48G -t 00:40:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/cloudops_smoke_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/cloudops_smoke_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+SMOKE=1 CFG=azure_vm_traces_2017 ARMS=HSTU,GRU $PY pretrain/run_cloudops_v2.py
+echo CLOUDOPS_SMOKE_DONE

@@ -1,0 +1,14 @@
+#!/bin/bash
+#SBATCH -J backfill
+#SBATCH -A hpcproject_cpu
+#SBATCH -p compute
+#SBATCH -N 1 -n 1 -c 4 --mem=24G -t 02:00:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/backfill_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/backfill_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+$PY -m py_compile pretrain/run_backfill_replay.py && echo COMPILE_OK
+DAYS=14 SKIPD=7 $PY pretrain/run_backfill_replay.py
+echo BACKFILL_DONE

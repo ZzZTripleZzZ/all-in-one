@@ -1,0 +1,13 @@
+#!/bin/bash
+#SBATCH -J lanl_prep_s5
+#SBATCH -A hpcproject_cpu
+#SBATCH -p compute
+#SBATCH -N 1
+#SBATCH -n 1
+#SBATCH -c 2
+#SBATCH --mem=8G
+#SBATCH -t 01:30:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/lanl_prep_s5_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/lanl_prep_s5_%j.err
+export SAMPLE=5
+bash /share/hpcproject/zzhang66/nfm/code/data/prep_lanl.sh

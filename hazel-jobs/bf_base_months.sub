@@ -1,0 +1,23 @@
+#!/bin/bash
+#SBATCH -J bf_basem
+#SBATCH -A hpcproject_cpu
+#SBATCH -p compute -q normal
+#SBATCH -N 1 -n 1 -c 4 --mem=48G -t 06:00:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/bf_basem_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/bf_basem_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+for M in 1 2 3 4 5 6; do
+  B=~/nfm/data/backfill_base_m$M
+  echo "######## month $M baselines ########"
+  NFILE=$M MAXJ=60000 QS=0.6 OUT=$B $PY pretrain/run_backfill_baselines.py
+  for FR in 0.50 0.575; do
+    for E in tsafrir gbm_q60; do
+      echo "---- month $M frac=$FR baseline=$E ----"
+      NFILE=$M MAXJ=60000 FRACCAP=$FR HISTQ=0.9 MODEL_EST=$B/$E.npz $PY pretrain/run_backfill_replay.py
+    done
+  done
+done
+echo BF_BASE_MONTHS_DONE

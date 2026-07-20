@@ -1,0 +1,18 @@
+#!/bin/bash
+#SBATCH -J sec_rich_smoke
+#SBATCH -A hpcproject_cpu
+#SBATCH -p compute
+#SBATCH -N 1
+#SBATCH -n 1
+#SBATCH -c 8
+#SBATCH --mem=32G
+#SBATCH -t 00:40:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/sec_rich_smoke_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/sec_rich_smoke_%j.err
+#SBATCH --dependency=afterok:462601
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+SMOKE=1 LANL_CSV=$HOME/nfm/data/lanl/lanl_rich_s5.csv $PY sft/run_security_rich.py
+echo SMOKE_DONE

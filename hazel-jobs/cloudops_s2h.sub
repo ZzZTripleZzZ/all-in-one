@@ -1,0 +1,13 @@
+#!/bin/bash
+#SBATCH -J co_s2_hstu
+#SBATCH -A hpcproject_gpu
+#SBATCH -p gpu -q gpu --gres=gpu:a30:1
+#SBATCH -N 1 -n 1 -c 8 --mem=64G -t 05:00:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/co_s2h_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/co_s2h_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+CFG=azure_vm_traces_2017 D=512 H=8 L=8 EP=20 MIX=6 SPLIT=288 SEED0=2 NSEED=3 BS=128 PRETRAIN_MAX=20000 EVALS=4000 ARMS=HSTU $PY pretrain/run_cloudops_v2.py
+echo CO_S2H_DONE

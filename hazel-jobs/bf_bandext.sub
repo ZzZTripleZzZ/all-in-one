@@ -1,0 +1,19 @@
+#!/bin/bash
+#SBATCH -J bf_bandext
+#SBATCH -A hpcproject_cpu
+#SBATCH -p compute -q normal
+#SBATCH -N 1 -n 1 -c 4 --mem=16G -t 02:00:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/bf_bandext_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/bf_bandext_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+BASE=~/nfm/data/backfill_base
+for CAP in 18000 21000 22000; do
+  for E in tsafrir gbm_q60; do
+    echo "---- bandext baseline=$E cap=$CAP ----"
+    NODES=$CAP HISTQ=0.9 MODEL_EST=$BASE/$E.npz $PY pretrain/run_backfill_replay.py
+  done
+done
+echo BF_BANDEXT_DONE

@@ -1,0 +1,13 @@
+#!/bin/bash
+#SBATCH -J cesnet_smoke
+#SBATCH -A hpcproject_cpu
+#SBATCH -p compute
+#SBATCH -N 1 -n 1 -c 8 --mem=32G -t 00:35:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/cesnet_smoke_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/cesnet_smoke_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+SMOKE=1 D=128 L=2 ARMS=TGR+direct,GRU+direct $PY pretrain/run_cesnet_v2.py
+echo CESNET_SMOKE_DONE
