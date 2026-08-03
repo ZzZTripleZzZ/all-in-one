@@ -9,3 +9,10 @@ generative-recommenders/
 *.parquet
 nfm_gpu/
 results-hazel/transfer/SUMMARY.md
+
+# internal planning notes, kept locally
+dataset-scouting.md
+dataset-validation.md
+hstu-validation.md
+methods_design.md
+.claude-session.log
