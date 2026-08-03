@@ -1,0 +1,21 @@
+#!/bin/bash
+#SBATCH -J tr_ft
+#SBATCH -A hpcproject_gpu
+#SBATCH -p gpu -q gpu --gres=gpu:a30:1
+#SBATCH -N 1 -n 1 -c 4 --mem=32G -t 04:00:00
+#SBATCH -o /share/hpcproject/zzhang66/nfm/logs/tr_ft_%x_%j.out
+#SBATCH -e /share/hpcproject/zzhang66/nfm/logs/tr_ft_%x_%j.err
+set -e
+export PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+PY=/share/hpcproject/zzhang66/nfm/env/bin/python
+cd /share/hpcproject/zzhang66/nfm/code
+M=${MODE:?}; PD=${PREDAYS:?}; S=${SEED:?}                       # MODE=scratch|transfer|zeroshot
+EST=~/nfm/data/tr_${M}_pd${PD}_s${S}${CKTAG:-}
+MODE=$M PREDAYS=$PD SEED=$S CKPT=${CKPT:-~/nfm/data/transfer/src_ca.pt} \
+USE_TIME=1 ARM=HSTU NFILE=0 LMAX=96 D=256 H=8 L=4 EP=30 MIX=6 STRIDE=24 QS=0.5,0.6 OUT=$EST \
+$PY pretrain/run_transfer_v2.py
+for Q in 50 60; do
+  echo "---- replay MODE=$M pd=$PD seed=$S cap=20000 q$Q ----"
+  NODES=20000 HISTQ=0.9 MODEL_EST=$EST/hstu_q$Q.npz $PY pretrain/run_backfill_replay.py
+done
+echo TR_FT_${M}_pd${PD}_s${S}_DONE

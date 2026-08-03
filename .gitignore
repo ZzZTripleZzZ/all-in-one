@@ -1,8 +1,11 @@
 __pycache__/
 *.pyc
 .DS_Store
-data/
+data/raw/
+data/processed/
 generative-recommenders/
 *.pdf
 *.npz
 *.parquet
+nfm_gpu/
+results-hazel/transfer/SUMMARY.md
