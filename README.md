@@ -167,7 +167,19 @@ NODES=20000 HISTQ=0.9 MODEL_EST=~/nfm/data/backfill_est/hstu_q50.npz \
   python pretrain/run_backfill_replay.py
 ```
 
-Step 2 prints the deployed-estimate and history rows of the first table, step 4 prints the Centile row. Replay itself is deterministic, so the reference arms are byte-identical between the two runs and a single seed lands within roughly one standard deviation of the reported 22.2.
+**Reading the output.** Each replay ends with one table and the line `BACKFILL_REPLAY_DONE`:
+
+```
+arm            meanBS    P95BS   util%  #backfill  medWait(s)
+user-elpl       94.77   279.92    86.1     44,034        4483
+oracle          17.72    69.58    85.1     41,718        2025
+hist-q90        56.63   104.80    86.2     44,293        1110
+model           22.__    28.__    ...
+```
+
+`meanBS` is mean bounded slowdown, the headline metric. `user-elpl` is the deployed user estimate, `hist-q90` the history baseline, `oracle` the true-runtime reference, and `model` the arm fed by `MODEL_EST`.
+
+**What should match exactly, and what should not.** The replay is deterministic and the three reference arms do not depend on the model, so `94.77 / 56.63 / 17.72` at 20,000 nodes should reproduce **to the digit** on any machine. Those are the first three rows of the results table above. The `model` row carries estimator training seeds, so expect it within roughly one standard deviation of the reported 22.2 rather than an exact match.
 
 For a faster check that trains on a fraction of the window:
 
@@ -198,7 +210,15 @@ Evaluation traces are never part of any pretraining corpus. Where a month is lab
 
 ## Reproducing the paper
 
-Each experiment is one environment-variable line over one entry script. The `hazel-jobs/*.sub` files are the exact Slurm scripts used, including the per-seed, per-month, and per-budget sweeps, and their stdout is preserved in [`results-hazel/logs/`](results-hazel/logs/). Wall-clock figures are for one A30.
+Each experiment is one environment-variable line over one entry script. The `hazel-jobs/*.sub` files are the exact Slurm scripts used, including the per-seed, per-month, and per-budget sweeps, and their stdout is preserved in [`results-hazel/logs/`](results-hazel/logs/). Wall-clock figures are for one A30. The full campaign is roughly 20 GPU-hours; the quick start above is 30 minutes.
+
+Two ways in, depending on how much you want to spend:
+
+- **Verify without rerunning.** Every number in this README appears in a preserved job log. The primary table is in `results-hazel/logs/`, the transfer grid in `results-hazel/transfer/`. Each log carries its full configuration line, so a claim can be traced to the arguments that produced it without a GPU.
+- **Rerun.** Take the entry script and driver job from the table below. Reference arms reproduce exactly, model arms carry seed variance.
+
+> [!IMPORTANT]
+> The `hazel-jobs/*.sub` scripts are the originals and hard-code one site: the interpreter at `/share/hpcproject/zzhang66/nfm/env/bin/python`, the working directory, the log paths, and an `#SBATCH -A hpcproject_gpu` account. On any other cluster, edit those four lines, or ignore the job files entirely and run the `python` command inside them directly, which is what they amount to.
 
 | Paper claim | Entry script | Driver job | Cost |
 |:---|:---|:---|:---|
