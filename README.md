@@ -7,7 +7,7 @@
 <p>
   <a href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white"></a>
   <a href="https://pytorch.org/"><img alt="PyTorch" src="https://img.shields.io/badge/PyTorch-2.6.0%2Bcu124-EE4C2C?style=flat-square&logo=pytorch&logoColor=white"></a>
-  <a href="results-hazel/"><img alt="Artifact" src="https://img.shields.io/badge/artifact-code%20%2B%20job%20logs-2F5C9E?style=flat-square&logo=github&logoColor=white"></a>
+  <a href="hazel-jobs/"><img alt="Artifact" src="https://img.shields.io/badge/artifact-code%20%2B%20job%20scripts-2F5C9E?style=flat-square&logo=github&logoColor=white"></a>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square&logo=opensourceinitiative&logoColor=white"></a>
 </p>
 
@@ -22,13 +22,13 @@ Code and experiment artifacts for **_Centile: A Telemetry Foundation Model Evalu
 Operators do not consume forecasts, they consume decisions. A backfilling scheduler reserves nodes against a walltime estimate, and a capacity planner locks in next-hour bandwidth at a traffic percentile. Both read a *quantile*, not a point forecast. Centile is one generative model, pretrained once per domain on unlabeled telemetry event streams, that serves conditional quantiles for any horizon in a single pass. It is scored by replaying those two recorded decisions, because point-forecast error saturates near last-value baselines while the decisions those forecasts drive diverge.
 
 > [!NOTE]
-> This repository holds the model, both replay harnesses, every baseline, and the raw stdout of the cluster jobs behind each number. It does **not** redistribute the traces, which are public and linked under [Data](#data), and it does **not** host pretrained weights: the runtime estimator is 1.3M parameters and retrains from scratch in about five minutes on one GPU.
+> This repository holds source only: the model, both replay harnesses, every baseline, and the job scripts that ran them. It carries no traces, no result files, and no pretrained weights. The traces are public and linked under [Data](#data), and the runtime estimator is 1.3M parameters, so it retrains from scratch in about five minutes on one GPU.
 >
 > The repository is named `all-in-one` for historical reasons and keeps that name so published links stay valid. The system is Centile throughout.
 
 ## What is here, and what is not
 
-**Here.** Two decision-replay harnesses: an EASY-backfilling scheduler replay over Fugaku job logs, and a next-hour capacity-provisioning sweep over national ISP traffic. The model itself, in `common/nfm_v2.py`. Every baseline the paper compares against: user-declared limits, per-user rolling quantiles, the Tsafrir last-2 predictor, gradient-boosted quantile regression, size-matched GRU and gated-retention models, and zero-shot Chronos-Bolt. The exact Slurm scripts used for the paper, in `hazel-jobs/`, and their stdout in `results-hazel/logs/`.
+**Here.** Two decision-replay harnesses: an EASY-backfilling scheduler replay over Fugaku job logs, and a next-hour capacity-provisioning sweep over national ISP traffic. The model itself, in `common/nfm_v2.py`. Every baseline the paper compares against: user-declared limits, per-user rolling quantiles, the Tsafrir last-2 predictor, gradient-boosted quantile regression, size-matched GRU and gated-retention models, and zero-shot Chronos-Bolt. The exact Slurm scripts used for the paper, in `hazel-jobs/`, one per experiment.
 
 **Not here.** No downloadable checkpoint, no packaged library, no scheduler you can deploy. The backfilling replay is an offline re-execution of a recorded submission stream: it is our own EASY implementation, in which the walltime estimate is the only quantity that differs between arms and reservations use the standard estimate-extension correction, so scheduling outcomes do not feed back into user behavior. Reproducing the paper means downloading the traces and rerunning the campaign, not loading weights.
 
@@ -210,12 +210,9 @@ Evaluation traces are never part of any pretraining corpus. Where a month is lab
 
 ## Reproducing the paper
 
-Each experiment is one environment-variable line over one entry script. The `hazel-jobs/*.sub` files are the exact Slurm scripts used, including the per-seed, per-month, and per-budget sweeps, and their stdout is preserved in [`results-hazel/logs/`](results-hazel/logs/). Wall-clock figures are for one A30. The full campaign is roughly 20 GPU-hours; the quick start above is 30 minutes.
+Each experiment is one environment-variable line over one entry script. The [`hazel-jobs/`](hazel-jobs/) files are the exact Slurm scripts used, including the per-seed, per-month, and per-budget sweeps. Wall-clock figures are for one A30. The full campaign is roughly 20 GPU-hours; the quick start above is 30 minutes.
 
-Two ways in, depending on how much you want to spend:
-
-- **Verify without rerunning.** Every number in this README appears in a preserved job log. The primary table is in `results-hazel/logs/`, the transfer grid in `results-hazel/transfer/`. Each log carries its full configuration line, so a claim can be traced to the arguments that produced it without a GPU.
-- **Rerun.** Take the entry script and driver job from the table below. Reference arms reproduce exactly, model arms carry seed variance.
+Take the entry script and driver job from the table below. Reference arms reproduce exactly, model arms carry seed variance, so the three reference rows are the ones to check an environment against.
 
 > [!IMPORTANT]
 > The `hazel-jobs/*.sub` scripts are the originals and hard-code one site: the interpreter at `/share/hpcproject/zzhang66/nfm/env/bin/python`, the working directory, the log paths, and an `#SBATCH -A hpcproject_gpu` account. On any other cluster, edit those four lines, or ignore the job files entirely and run the `python` command inside them directly, which is what they amount to.
@@ -272,8 +269,7 @@ all-in-one/
 │   └── efficiency.py             # parameter count, latency, artifact size
 ├── sft/                          # frozen-model transfer experiments
 ├── scripts/                      # benchmarks, probes, unit checks
-├── hazel-jobs/                   # the exact Slurm scripts used for the paper
-└── results-hazel/logs/           # stdout of those jobs
+└── hazel-jobs/                   # the exact Slurm scripts used for the paper
 ```
 
 `sft/` and parts of `scripts/` hold exploratory work that did not enter the paper, kept because a campaign log is more useful complete than curated.
