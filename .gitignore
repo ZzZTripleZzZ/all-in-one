@@ -16,3 +16,7 @@ dataset-validation.md
 hstu-validation.md
 methods_design.md
 .claude-session.log
+
+# experiment results and data stay out of the repo
+results-hazel/
+results/
