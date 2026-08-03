@@ -23,6 +23,8 @@ Operators do not consume forecasts, they consume decisions. A backfilling schedu
 
 > [!NOTE]
 > This repository holds the model, both replay harnesses, every baseline, and the raw stdout of the cluster jobs behind each number. It does **not** redistribute the traces, which are public and linked under [Data](#data), and it does **not** host pretrained weights: the runtime estimator is 1.3M parameters and retrains from scratch in about five minutes on one GPU.
+>
+> The repository is named `all-in-one` for historical reasons and keeps that name so published links stay valid. The system is Centile throughout.
 
 ## What is here, and what is not
 
@@ -128,8 +130,8 @@ The model is in `common/nfm_v2.py`. `common/nfm_core.py` holds the earlier singl
 Tested on Linux with CUDA 12.4, Python 3.11, one NVIDIA A30 (24 GB).
 
 ```bash
-git clone https://github.com/ZzZTripleZzZ/centile.git
-cd centile
+git clone https://github.com/ZzZTripleZzZ/all-in-one.git
+cd all-in-one
 
 curl -LsSf https://astral.sh/uv/install.sh | sh
 uv venv --python 3.11 && source .venv/bin/activate
@@ -229,7 +231,7 @@ flowchart LR
 ## Repository layout
 
 ```
-centile/
+all-in-one/
 ├── common/                       # model and metrics library
 │   ├── nfm_v2.py                 # Centile: attention layers, mixture head, horizon head
 │   ├── nfm_core.py               # earlier variant, quantizer, TFM/LSTM/GRU baselines
